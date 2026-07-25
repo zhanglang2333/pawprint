@@ -136,4 +136,4 @@ pawprint/
 
 ## License
 
-CC BY-NC 4.0 — Non-commercial use only.
+MIT — except the "打卡进步" (Better) module which is licensed under CC BY-NC 4.0 (non-commercial use only).

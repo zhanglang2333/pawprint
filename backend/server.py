@@ -3973,6 +3973,8 @@ async def challenge(action: str, pack_id: str = "", name: str = "",
 
 
 # ============ Better (打卡进步) ============
+# This module is licensed under CC BY-NC 4.0 (non-commercial use only).
+# https://creativecommons.org/licenses/by-nc/4.0/
 
 BETTER_ICONS = {
     "life": ["🪥","🐱","🍞","☕","🥗","🍲","🥤","💧","🧹","🐷","🌿","🦔","🍇","🕯️","🎒"],
@@ -4376,6 +4378,8 @@ async def better(action: str, name: str = "", icon: str = "", category: str = "l
 
 
 # ============ 打卡提醒后台任务 ============
+# This module is licensed under CC BY-NC 4.0 (non-commercial use only).
+# https://creativecommons.org/licenses/by-nc/4.0/
 
 BETTER_REMIND_STATE = {"last_date": "", "nudge_count": 0}
 BETTER_REMIND_SETTINGS = {

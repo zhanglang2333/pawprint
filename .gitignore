@@ -11,3 +11,5 @@ __pycache__/
 *.log
 .vscode/
 .idea/
+qa_data/
+backend/qa_data/

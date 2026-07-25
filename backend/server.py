@@ -17,6 +17,7 @@ import json
 import time
 import uuid
 import calendar
+import asyncio
 from datetime import datetime, timedelta, date
 from pathlib import Path
 from typing import Optional, List
@@ -3971,7 +3972,7 @@ async def challenge(action: str, pack_id: str = "", name: str = "",
     return f"未知操作: {action}。可用: list, presets, create, detail, check, add_item, delete"
 
 
-# ============ Better (一起Better) ============
+# ============ Better (打卡进步) ============
 
 BETTER_ICONS = {
     "life": ["🪥","🐱","🍞","☕","🥗","🍲","🥤","💧","🧹","🐷","🌿","🦔","🍇","🕯️","🎒"],
@@ -4237,7 +4238,7 @@ def api_better_stats(year: int, month: int):
 async def better(action: str, name: str = "", icon: str = "", category: str = "life",
                  schedule_type: str = "daily", schedule_days: str = "",
                  daily_count: int = 1, goal_id: str = "", date_str: str = "") -> str:
-    """一起Better打卡目标管理。AI可以给人类添加/管理打卡目标。
+    """打卡进步目标管理。AI可以给人类添加/管理打卡目标。
 
     Args:
         action: 操作类型:
@@ -4372,6 +4373,52 @@ async def better(action: str, name: str = "", icon: str = "", category: str = "l
         return "\n".join(lines)
 
     return f"未知操作: {action}。可用: list, create, check, uncheck, delete, today, icons"
+
+
+# ============ 打卡提醒后台任务 ============
+
+BETTER_REMIND_STATE = {"last_date": "", "nudge_count": 0}
+BETTER_REMIND_SETTINGS = {
+    "review_hour": 20,
+    "review_minute": 0,
+    "nudge_intervals_min": [0, 30, 60],
+    "max_nudges": 3,
+    "check_interval_sec": 300,
+}
+
+async def better_remind_loop():
+    await asyncio.sleep(10)
+    while True:
+        try:
+            now = datetime.now()
+            today = date.today().isoformat()
+            s = BETTER_REMIND_SETTINGS
+
+            if BETTER_REMIND_STATE["last_date"] != today:
+                BETTER_REMIND_STATE["last_date"] = today
+                BETTER_REMIND_STATE["nudge_count"] = 0
+
+            review_time = now.replace(hour=s["review_hour"], minute=s["review_minute"], second=0, microsecond=0)
+            if now >= review_time and BETTER_REMIND_STATE["nudge_count"] < s["max_nudges"]:
+                nudge_idx = BETTER_REMIND_STATE["nudge_count"]
+                target_time = review_time + timedelta(minutes=s["nudge_intervals_min"][min(nudge_idx, len(s["nudge_intervals_min"]) - 1)])
+                if now >= target_time:
+                    data = load_better()
+                    day_info = calc_better_day(data, today)
+                    if day_info["total_needed"] > 0 and day_info["pct"] < 100:
+                        undone = [g for g in day_info["items"] if not g["done"]]
+                        names = "、".join(g["name"] for g in undone[:5])
+                        round_num = nudge_idx + 1
+                        notify(f"⏰ 打卡提醒（第{round_num}轮）：今日完成{day_info['pct']}%，未完成：{names}")
+                        BETTER_REMIND_STATE["nudge_count"] = round_num
+        except Exception:
+            pass
+        await asyncio.sleep(s["check_interval_sec"])
+
+
+@app.on_event("startup")
+async def start_better_remind():
+    asyncio.create_task(better_remind_loop())
 
 
 # MCP app作为顶层，FastAPI挂在下面

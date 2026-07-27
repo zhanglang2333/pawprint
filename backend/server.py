@@ -39,6 +39,9 @@ MOOD_FILE = DATA_DIR / "moods.json"
 UPLOADS_DIR = DATA_DIR / "uploads"
 PERIOD_FILE = DATA_DIR / "period.json"
 BETTER_FILE = DATA_DIR / "better.json"
+SHELL_FILE = DATA_DIR / "shells.json"
+SIGNIN_FILE = DATA_DIR / "signin.json"
+TASK_FILE = DATA_DIR / "tasks.json"
 DATA_DIR.mkdir(exist_ok=True)
 UPLOADS_DIR.mkdir(exist_ok=True)
 
@@ -465,6 +468,7 @@ def claw_result(data: dict):
     success = data.get("success", False)
     name = data.get("name", "")
     emoji = data.get("emoji", "")
+    complete_task("claw")
     if success:
         notify(f"🎮 抓到了{emoji} {name}！")
     return {"ok": True}
@@ -491,6 +495,8 @@ def api_answer(req: AnswerRequest):
         raise HTTPException(400, "role must be 'human' or 'ai'")
 
     state = do_answer(req.answer, req.role)
+    if req.role == "human":
+        complete_task("qa_answer")
     idx = state["current_question_index"]
     return {
         "day": idx + 1,
@@ -656,6 +662,8 @@ def api_mood_save(req: MoodRequest):
     existing = get_mood_by_date(req.date, req.role)
     photos = existing.get("photos", []) if existing else []
     set_mood(req.date, req.mood, req.role, req.note, req.tags, photos)
+    if req.role == "human" and req.date == date.today().isoformat():
+        complete_task("mood")
     return {"ok": True, "date": req.date, "mood": req.mood}
 
 
@@ -1942,6 +1950,8 @@ def api_chem_act_create(req: ChemActCreateReq):
         "answered_at": None,
     }
     _save_act_session(session)
+    if req.creator == "human":
+        complete_task("act_create")
     if req.clues:
         notify(f"🎭 {req.performer_name}出了一个你演我猜词条，等{req.guesser_name}猜")
     return {"ok": True, "id": sid, "status": "waiting"}
@@ -2135,6 +2145,8 @@ def api_chem_draw_create(req: ChemDrawCreateReq):
         "answered_at": None,
     }
     _save_draw_session(session)
+    if req.creator == "human":
+        complete_task("draw_create")
     notify(f"🎨 {req.drawer_name}画了一幅画，等{req.guesser_name}来猜！")
     return {"ok": True, "id": sid, "status": "waiting"}
 
@@ -4204,6 +4216,8 @@ def api_better_check(goal_id: str, req: dict = {}):
     if done_count >= needed and not uncheck:
         day_info = calc_better_day(data, date_str)
         notify(f"✅ 打卡：{goal['name']}（{day_info['pct']}%）")
+        if date_str == date.today().isoformat():
+            complete_task("better_one")
     return {"ok": True, "count": ch["count"], "done": ch["count"] >= needed}
 
 @app.get("/better/stats/{year}/{month}")
@@ -4375,6 +4389,257 @@ async def better(action: str, name: str = "", icon: str = "", category: str = "l
         return "\n".join(lines)
 
     return f"未知操作: {action}。可用: list, create, check, uncheck, delete, today, icons"
+
+
+# ============ 贝壳货币系统 ============
+
+def load_shells():
+    if SHELL_FILE.exists():
+        with open(SHELL_FILE, "r") as f:
+            return json.load(f)
+    return {"balance": 0, "total_earned": 0, "log": []}
+
+
+def save_shells(data):
+    with open(SHELL_FILE, "w") as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+
+
+def add_shells(amount: int, reason: str, source: str = "system"):
+    data = load_shells()
+    data["balance"] += amount
+    if amount > 0:
+        data["total_earned"] += amount
+    data["log"].append({
+        "amount": amount,
+        "reason": reason,
+        "source": source,
+        "time": datetime.now().isoformat()
+    })
+    if len(data["log"]) > 500:
+        data["log"] = data["log"][-500:]
+    save_shells(data)
+    return data["balance"]
+
+
+@app.get("/shell/balance")
+def api_shell_balance():
+    data = load_shells()
+    return {"balance": data["balance"], "total_earned": data["total_earned"]}
+
+
+@app.get("/shell/log")
+def api_shell_log(limit: int = 50):
+    data = load_shells()
+    return {"balance": data["balance"], "log": data["log"][-limit:][::-1]}
+
+
+# ============ 每日签到 ============
+
+SIGNIN_REWARDS = {
+    0: 20, 1: 20, 2: 20, 3: 20, 4: 20,  # Mon-Fri
+    5: 30, 6: 30  # Sat-Sun
+}
+SIGNIN_BONUS_7DAY = 50
+
+def load_signin():
+    if SIGNIN_FILE.exists():
+        with open(SIGNIN_FILE, "r") as f:
+            return json.load(f)
+    return {"records": [], "streak": 0, "last_date": ""}
+
+
+def save_signin(data):
+    with open(SIGNIN_FILE, "w") as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+
+
+def calc_streak(signin_data):
+    records = signin_data.get("records", [])
+    if not records:
+        return 0
+    today = date.today()
+    streak = 0
+    d = today
+    for _ in range(365):
+        if d.isoformat() in records:
+            streak += 1
+            d -= timedelta(days=1)
+        else:
+            break
+    return streak
+
+
+@app.get("/signin/status")
+def api_signin_status():
+    data = load_signin()
+    today = date.today().isoformat()
+    signed_today = today in data.get("records", [])
+    streak = calc_streak(data)
+
+    week_start = date.today() - timedelta(days=date.today().weekday())
+    week_status = []
+    for i in range(7):
+        d = week_start + timedelta(days=i)
+        day_names = ["周一", "周二", "周三", "周四", "周五", "周六", "周日"]
+        reward = SIGNIN_REWARDS.get(d.weekday(), 20)
+        week_status.append({
+            "date": d.isoformat(),
+            "day_name": day_names[i],
+            "reward": reward,
+            "signed": d.isoformat() in data.get("records", []),
+            "is_today": d.isoformat() == today
+        })
+
+    return {
+        "signed_today": signed_today,
+        "streak": streak,
+        "week": week_status,
+        "bonus_7day": SIGNIN_BONUS_7DAY,
+        "bonus_available": streak > 0 and streak % 7 == 0 and signed_today
+    }
+
+
+@app.post("/signin/do")
+def api_signin_do():
+    data = load_signin()
+    today = date.today().isoformat()
+
+    if today in data.get("records", []):
+        return {"ok": False, "msg": "今天已签到", "balance": load_shells()["balance"]}
+
+    if "records" not in data:
+        data["records"] = []
+    data["records"].append(today)
+    data["last_date"] = today
+
+    if len(data["records"]) > 365:
+        data["records"] = data["records"][-365:]
+
+    save_signin(data)
+
+    reward = SIGNIN_REWARDS.get(date.today().weekday(), 20)
+    balance = add_shells(reward, f"每日签到 +{reward}", "signin")
+
+    streak = calc_streak(data)
+    bonus_msg = ""
+    if streak > 0 and streak % 7 == 0:
+        add_shells(SIGNIN_BONUS_7DAY, f"连续签到{streak}天奖励 +{SIGNIN_BONUS_7DAY}", "signin_bonus")
+        bonus_msg = f"，连签{streak}天额外+{SIGNIN_BONUS_7DAY}"
+        balance = load_shells()["balance"]
+
+    notify(f"✨ 签到成功！+{reward}贝壳{bonus_msg}（连续{streak}天）")
+    return {"ok": True, "reward": reward, "streak": streak, "balance": balance, "bonus_msg": bonus_msg}
+
+
+# ============ 每日任务 ============
+
+DAILY_TASKS = [
+    {"id": "signin", "name": "每日签到", "reward": 0, "desc": "签到即可完成", "auto": True},
+    {"id": "mood", "name": "写心情日记", "reward": 20, "desc": "在日记页写今日的心情日记"},
+    {"id": "qa_answer", "name": "回答每日问答", "reward": 20, "desc": "回答今日问答中的问题"},
+    {"id": "draw_create", "name": "发起你画我猜", "reward": 20, "desc": "出题发起一次你画我猜"},
+    {"id": "act_create", "name": "发起你演我猜", "reward": 20, "desc": "出题发起一次你演我猜"},
+    {"id": "better_one", "name": "完成一项打卡", "reward": 20, "desc": "完成至少一项打卡目标"},
+    {"id": "claw", "name": "每日抓娃娃机", "reward": 20, "desc": "试试手气，去玩1次抓娃娃机"},
+]
+
+
+def load_tasks():
+    if TASK_FILE.exists():
+        with open(TASK_FILE, "r") as f:
+            return json.load(f)
+    return {}
+
+
+def save_tasks(data):
+    with open(TASK_FILE, "w") as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+
+
+def get_today_tasks():
+    data = load_tasks()
+    today = date.today().isoformat()
+    if today not in data:
+        data[today] = {}
+        save_tasks(data)
+    return data[today]
+
+
+def complete_task(task_id: str):
+    data = load_tasks()
+    today = date.today().isoformat()
+    if today not in data:
+        data[today] = {}
+
+    if task_id in data[today]:
+        return False, 0
+
+    task_def = None
+    for t in DAILY_TASKS:
+        if t["id"] == task_id:
+            task_def = t
+            break
+    if not task_def:
+        return False, 0
+
+    data[today][task_id] = datetime.now().isoformat()
+    save_tasks(data)
+
+    reward = task_def["reward"]
+    if reward > 0:
+        add_shells(reward, f"任务「{task_def['name']}」 +{reward}", "task")
+
+    return True, reward
+
+
+@app.get("/task/today")
+def api_task_today():
+    today_done = get_today_tasks()
+    today_str = date.today().isoformat()
+
+    signin_data = load_signin()
+    if today_str in signin_data.get("records", []):
+        if "signin" not in today_done:
+            data = load_tasks()
+            if today_str not in data:
+                data[today_str] = {}
+            data[today_str]["signin"] = datetime.now().isoformat()
+            save_tasks(data)
+            today_done = data[today_str]
+
+    tasks = []
+    total_reward = 0
+    done_count = 0
+    for t in DAILY_TASKS:
+        done = t["id"] in today_done
+        if done:
+            done_count += 1
+        total_reward += t["reward"]
+        tasks.append({
+            "id": t["id"],
+            "name": t["name"],
+            "reward": t["reward"],
+            "desc": t["desc"],
+            "done": done
+        })
+
+    return {
+        "date": today_str,
+        "tasks": tasks,
+        "done_count": done_count,
+        "total_count": len(DAILY_TASKS),
+        "total_reward": total_reward,
+        "balance": load_shells()["balance"]
+    }
+
+
+@app.post("/task/complete/{task_id}")
+def api_task_complete(task_id: str):
+    ok, reward = complete_task(task_id)
+    if not ok:
+        return {"ok": False, "msg": "任务已完成或不存在"}
+    return {"ok": True, "reward": reward, "balance": load_shells()["balance"]}
 
 
 # ============ 打卡提醒后台任务 ============

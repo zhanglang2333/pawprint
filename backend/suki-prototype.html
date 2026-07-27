@@ -442,7 +442,216 @@
     font-size: 13px;
     font-weight: 600;
     color: var(--accent);
+    cursor: pointer;
+    transition: transform 0.15s;
   }
+  .shell-counter:active { transform: scale(0.95); }
+
+  /* === SIGNIN PAGE === */
+  .signin-page {
+    padding: 0 0 100px;
+    background: var(--floor);
+    min-height: 100%;
+  }
+  .signin-header {
+    display: flex;
+    align-items: center;
+    padding: 16px;
+    gap: 12px;
+  }
+  .signin-back {
+    font-size: 28px;
+    cursor: pointer;
+    color: var(--text);
+    line-height: 1;
+  }
+  .signin-title {
+    flex: 1;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text);
+  }
+  .signin-balance {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--accent);
+    background: var(--icon-bg);
+    border: 1.5px solid var(--icon-border);
+    border-radius: 16px;
+    padding: 4px 12px;
+  }
+  .signin-card {
+    margin: 0 16px 16px;
+    background: var(--icon-bg);
+    border: 1.5px solid var(--icon-border);
+    border-radius: 16px;
+    padding: 16px;
+  }
+  .signin-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+  }
+  .signin-card-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text);
+  }
+  .signin-streak {
+    font-size: 12px;
+    color: var(--accent);
+    font-weight: 600;
+  }
+  .signin-task-progress {
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+  .signin-week {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 6px;
+    margin-bottom: 12px;
+  }
+  .signin-day {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 8px 0;
+    border-radius: 10px;
+    background: var(--floor);
+    border: 1.5px solid transparent;
+  }
+  .signin-day.today {
+    border-color: var(--accent);
+    background: color-mix(in srgb, var(--accent) 8%, var(--floor));
+  }
+  .signin-day.signed {
+    background: color-mix(in srgb, var(--accent) 15%, var(--floor));
+  }
+  .signin-day-name {
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+  .signin-day-icon {
+    font-size: 18px;
+    line-height: 1;
+  }
+  .signin-day-reward {
+    font-size: 10px;
+    color: var(--text-muted);
+    font-weight: 600;
+  }
+  .signin-bonus-row {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 14px;
+  }
+  .signin-bonus-box {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    border-radius: 10px;
+    background: var(--floor);
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+  .signin-bonus-label {
+    font-size: 12px;
+  }
+  .signin-btn {
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 12px;
+    background: linear-gradient(135deg, var(--accent), var(--accent-soft));
+    color: #fff;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform 0.15s, opacity 0.15s;
+    font-family: inherit;
+  }
+  .signin-btn:active { transform: scale(0.97); }
+  .signin-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background: var(--text-muted);
+  }
+  .task-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .task-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    border-radius: 12px;
+    background: var(--floor);
+  }
+  .task-reward {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--accent);
+    min-width: 50px;
+  }
+  .task-info {
+    flex: 1;
+    min-width: 0;
+  }
+  .task-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+  }
+  .task-desc {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 2px;
+  }
+  .task-go-btn {
+    padding: 6px 14px;
+    border: none;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+    transition: transform 0.15s;
+    background: linear-gradient(135deg, var(--accent), var(--accent-soft));
+    color: #fff;
+  }
+  .task-go-btn:active { transform: scale(0.95); }
+  .task-go-btn.done {
+    background: var(--text-muted);
+    opacity: 0.5;
+    cursor: default;
+  }
+  .shell-log {
+    max-height: 200px;
+    overflow-y: auto;
+  }
+  .shell-log-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--icon-border);
+    font-size: 13px;
+  }
+  .shell-log-item:last-child { border-bottom: none; }
+  .shell-log-reason { color: var(--text); flex: 1; }
+  .shell-log-amount { font-weight: 700; min-width: 60px; text-align: right; }
+  .shell-log-amount.positive { color: var(--accent); }
+  .shell-log-amount.negative { color: var(--badge); }
+  .shell-log-time { font-size: 11px; color: var(--text-muted); margin-left: 8px; }
 
   /* === TAB PANELS === */
   .tab-panel {
@@ -1963,7 +2172,7 @@
       <div class="pet-shadow"></div>
     </div>
 
-    <div class="shell-counter">🐚 128</div>
+    <div class="shell-counter" id="shell-counter" onclick="openPanel('panel-signin')">🐚 <span id="shell-balance">0</span></div>
   </div>
 </div>
 
@@ -3402,6 +3611,46 @@
 </div>
 
 <!-- Tab Panel: 设置 -->
+<div class="tab-panel" id="panel-signin">
+  <div class="signin-page">
+    <div class="signin-header">
+      <div class="signin-back" onclick="backToHome()">‹</div>
+      <div class="signin-title">签到中心</div>
+      <div class="signin-balance">🐚 <span id="signin-balance">0</span></div>
+    </div>
+
+    <div class="signin-card">
+      <div class="signin-card-header">
+        <span class="signin-card-title">每日签到</span>
+        <span class="signin-streak" id="signin-streak">连续签到0天</span>
+      </div>
+      <div class="signin-week" id="signin-week"></div>
+      <div class="signin-bonus-row">
+        <div class="signin-bonus-box" id="signin-bonus-box">
+          <span>🎁</span>
+          <span class="signin-bonus-label">7日签到奖励</span>
+        </div>
+      </div>
+      <button class="signin-btn" id="signin-btn" onclick="doSignin()">签到 +20🐚</button>
+    </div>
+
+    <div class="signin-card">
+      <div class="signin-card-header">
+        <span class="signin-card-title">贝壳任务</span>
+        <span class="signin-task-progress" id="task-progress">（每日0点重置）</span>
+      </div>
+      <div class="task-list" id="task-list"></div>
+    </div>
+
+    <div class="signin-card">
+      <div class="signin-card-header">
+        <span class="signin-card-title">收支记录</span>
+      </div>
+      <div class="shell-log" id="shell-log"></div>
+    </div>
+  </div>
+</div>
+
 <div class="tab-panel" id="panel-chat">
   <div class="placeholder-page">
     <div class="placeholder-icon">⚙️</div>
@@ -3580,6 +3829,135 @@
     document.querySelector('[data-tab="home"]').classList.add('active');
   }
 
+  function openPanel(panelId) {
+    const scene = document.querySelector('.scene');
+    scene.classList.add('hidden');
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    document.getElementById(panelId).classList.add('active');
+    if (panelId === 'panel-signin') {
+      loadSigninStatus();
+      loadTasks();
+      loadShellLog();
+    }
+  }
+
+  // ============ 签到 + 贝壳 + 任务 ============
+
+  async function updateShellBalance() {
+    try {
+      const res = await fetch('/shell/balance');
+      const data = await res.json();
+      document.getElementById('shell-balance').textContent = data.balance;
+      const sb = document.getElementById('signin-balance');
+      if (sb) sb.textContent = data.balance;
+    } catch(e) {}
+  }
+
+  async function loadSigninStatus() {
+    try {
+      const res = await fetch('/signin/status');
+      const data = await res.json();
+      const weekEl = document.getElementById('signin-week');
+      weekEl.innerHTML = data.week.map(d => {
+        const cls = ['signin-day'];
+        if (d.is_today) cls.push('today');
+        if (d.signed) cls.push('signed');
+        return `<div class="${cls.join(' ')}">
+          <span class="signin-day-name">${d.day_name}</span>
+          <span class="signin-day-icon">${d.signed ? '✅' : '🐚'}</span>
+          <span class="signin-day-reward">${d.reward}</span>
+        </div>`;
+      }).join('');
+
+      document.getElementById('signin-streak').textContent = `连续签到${data.streak}天`;
+
+      const btn = document.getElementById('signin-btn');
+      if (data.signed_today) {
+        btn.disabled = true;
+        btn.textContent = '已签到 ✓';
+      } else {
+        btn.disabled = false;
+        const todayReward = data.week.find(d => d.is_today)?.reward || 20;
+        btn.textContent = `签到 +${todayReward}🐚`;
+      }
+
+      updateShellBalance();
+    } catch(e) {}
+  }
+
+  async function doSignin() {
+    const btn = document.getElementById('signin-btn');
+    btn.disabled = true;
+    btn.textContent = '签到中...';
+    try {
+      const res = await fetch('/signin/do', {method: 'POST'});
+      const data = await res.json();
+      if (data.ok) {
+        btn.textContent = '已签到 ✓';
+        loadSigninStatus();
+        loadTasks();
+      } else {
+        btn.textContent = data.msg || '已签到';
+      }
+    } catch(e) {
+      btn.disabled = false;
+      btn.textContent = '签到失败，重试';
+    }
+  }
+
+  async function loadTasks() {
+    try {
+      const res = await fetch('/task/today');
+      const data = await res.json();
+      document.getElementById('task-progress').textContent = `(${data.done_count}/${data.total_count}) 每日0点重置`;
+      const listEl = document.getElementById('task-list');
+      listEl.innerHTML = data.tasks.map(t => {
+        const taskActions = {
+          'signin': () => doSignin(),
+          'mood': () => openPanel('panel-mood'),
+          'qa_answer': () => { backToHome(); setTimeout(() => switchTab(document.querySelector('[data-tab="qa"]')), 100); },
+          'draw_create': () => openPanel('panel-chem-draw'),
+          'act_create': () => openPanel('panel-chem-act'),
+          'better_one': () => openPanel('panel-better'),
+          'claw': () => openPanel('panel-claw'),
+        };
+        return `<div class="task-item">
+          <div class="task-reward">🐚 +${t.reward}</div>
+          <div class="task-info">
+            <div class="task-name">${t.name}</div>
+            <div class="task-desc">${t.desc}</div>
+          </div>
+          <button class="task-go-btn ${t.done ? 'done' : ''}" ${t.done ? 'disabled' : ''} onclick="${t.done ? '' : `openPanel('panel-${t.id === 'signin' ? 'signin' : t.id === 'mood' ? 'mood' : t.id === 'qa_answer' ? 'qa' : t.id === 'draw_create' ? 'chem-draw' : t.id === 'act_create' ? 'chem-act' : t.id === 'better_one' ? 'better' : t.id === 'claw' ? 'claw' : 'signin'}')`}">${t.done ? '已完成' : '去完成'}</button>
+        </div>`;
+      }).join('');
+
+      updateShellBalance();
+    } catch(e) {}
+  }
+
+  async function loadShellLog() {
+    try {
+      const res = await fetch('/shell/log?limit=20');
+      const data = await res.json();
+      const logEl = document.getElementById('shell-log');
+      if (!data.log.length) {
+        logEl.innerHTML = '<div style="text-align:center;color:var(--text-muted);padding:20px;font-size:13px;">暂无记录</div>';
+        return;
+      }
+      logEl.innerHTML = data.log.map(item => {
+        const t = new Date(item.time);
+        const timeStr = `${t.getMonth()+1}/${t.getDate()} ${t.getHours()}:${String(t.getMinutes()).padStart(2,'0')}`;
+        const cls = item.amount >= 0 ? 'positive' : 'negative';
+        const sign = item.amount >= 0 ? '+' : '';
+        return `<div class="shell-log-item">
+          <span class="shell-log-reason">${item.reason}</span>
+          <span class="shell-log-amount ${cls}">${sign}${item.amount}</span>
+          <span class="shell-log-time">${timeStr}</span>
+        </div>`;
+      }).join('');
+    } catch(e) {}
+  }
+
   function closeNest() {
     const scene = document.querySelector('.scene');
     document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
@@ -3638,6 +4016,7 @@
   }
 
   loadQuestion();
+  updateShellBalance();
 
   // === Anniversary ===
 
